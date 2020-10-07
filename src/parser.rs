@@ -5,12 +5,25 @@ pub fn parse(source: &str) -> Option<Program> {
 
 #[derive(Debug)]
 pub struct Program {
-    instructions: Vec<Instruction>,
+    pub instructions: Vec<Instruction>,
 }
 
 #[derive(Debug)]
 pub enum Instruction {
+    Alt(String),
+    Control(String),
+    ControlAlt(String),
+    ControlShift(String),
+    DefaultDelay(u32),
     Delay(u32),
+    GUI(String),
+    REM(String),
+    AltShift,
+    Shift(String),
+    EnterString(String),
+    StringDelay(u32),
+    Repeat(u32),
+    KeyName(String),
 }
 
 impl Program {
@@ -18,8 +31,12 @@ impl Program {
         let mut instructions = vec![];
 
         for line in source.split("\n") {
-            let instruction = Instruction::from_str(line)?;
-            instructions.push(instruction);
+            if line.trim().is_empty() {
+                continue;
+            }
+
+            let instruction = Instruction::from_str(line);
+            instructions.push(instruction?);
         }
 
         Some(Self { instructions })
@@ -32,11 +49,28 @@ impl Instruction {
 
         match *parts.get(0)? {
             "DELAY" => Self::parse_delay(parts),
-            _ => None,
+            "GUI" => Self::parse_gui(parts),
+            "STRING" => Self::parse_string(parts),
+            _ => Some(Self::KeyName(parts.get(0)?.to_string())),
         }
     }
 
     fn parse_delay(parts: Vec<&str>) -> Option<Self> {
         Some(Self::Delay(parts.get(1)?.parse().ok()?))
+    }
+
+    fn parse_gui(parts: Vec<&str>) -> Option<Self> {
+        Some(Self::GUI(parts.get(1)?.to_string()))
+    }
+
+    fn parse_string(parts: Vec<&str>) -> Option<Self> {
+        let string: String = parts
+            .iter()
+            .skip(1)
+            .map(|s| *s)
+            .collect::<Vec<&str>>()
+            .join(" ");
+
+        Some(Self::EnterString(string))
     }
 }
